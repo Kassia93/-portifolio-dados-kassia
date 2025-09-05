@@ -25,3 +25,94 @@ CREATE TABLE receita (
     toneladas_produzidas DECIMAL(10,2),
     FOREIGN KEY (id_usina) REFERENCES usinas(id_usina)
 );
+
+
+create_tables.sql
+
+-- Criar tabela de usinas
+CREATE TABLE usinas (
+    id_usina INT PRIMARY KEY,
+    nome VARCHAR(50)
+);
+
+-- Criar tabela de custos
+CREATE TABLE custos (
+    id_custo INT PRIMARY KEY,
+    id_usina INT,
+    mes VARCHAR(20),
+    custo_insumos DECIMAL(10,2),
+    custo_combustivel DECIMAL(10,2),
+    custo_manutencao DECIMAL(10,2),
+    custo_rh DECIMAL(10,2),
+    FOREIGN KEY (id_usina) REFERENCES usinas(id_usina)
+);
+
+-- Criar tabela de receita
+CREATE TABLE receita (
+    id_receita INT PRIMARY KEY,
+    id_usina INT,
+    mes VARCHAR(20),
+    valor DECIMAL(10,2),
+    toneladas_produzidas DECIMAL(10,2),
+    FOREIGN KEY (id_usina) REFERENCES usinas(id_usina)
+);
+
+insert_data.sql
+
+-- Inserir usinas
+INSERT INTO usinas VALUES (1, 'Alfa'), (2, 'Beta'), (3, 'Gama');
+
+-- Inserir custos
+INSERT INTO custos VALUES
+(1, 1, 'Janeiro', 200000, 100000, 50000, 100000),
+(2, 2, 'Janeiro', 180000, 120000, 40000, 90000),
+(3, 3, 'Janeiro', 220000, 110000, 60000, 95000),
+(4, 1, 'Fevereiro', 210000, 95000, 55000, 102000),
+(5, 2, 'Fevereiro', 185000, 115000, 45000, 92000),
+(6, 3, 'Fevereiro', 225000, 105000, 62000, 97000);
+
+-- Inserir receita
+INSERT INTO receita VALUES
+(1, 1, 'Janeiro', 600000, 1000),
+(2, 2, 'Janeiro', 580000, 950),
+(3, 3, 'Janeiro', 610000, 1100),
+(4, 1, 'Fevereiro', 620000, 1020),
+(5, 2, 'Fevereiro', 590000, 970),
+(6, 3, 'Fevereiro', 630000, 1120);
+
+Consultas SQL prontas (queries/)
+
+a) Rentabilidade líquida por usina
+
+SELECT 
+    u.nome AS Usina,
+    r.mes,
+    r.valor - (c.custo_insumos + c.custo_combustivel + c.custo_manutencao + c.custo_rh) AS rentabilidade
+FROM receita r
+JOIN custos c ON r.id_usina = c.id_usina AND r.mes = c.mes
+JOIN usinas u ON u.id_usina = r.id_usina
+ORDER BY r.mes, u.nome;
+
+b) Custo por tonelada produzida
+
+SELECT 
+    u.nome AS Usina,
+    r.mes,
+    (c.custo_insumos + c.custo_combustivel + c.custo_manutencao + c.custo_rh) / r.toneladas_produzidas AS custo_por_tonelada
+FROM receita r
+JOIN custos c ON r.id_usina = c.id_usina AND r.mes = c.mes
+JOIN usinas u ON u.id_usina = r.id_usina
+ORDER BY r.mes, u.nome;
+
+c) Comparativo mensal de receita e custo
+
+SELECT 
+    r.mes,
+    SUM(r.valor) AS receita_total,
+    SUM(c.custo_insumos + c.custo_combustivel + c.custo_manutencao + c.custo_rh) AS custo_total,
+    SUM(r.valor) - SUM(c.custo_insumos + c.custo_combustivel + c.custo_manutencao + c.custo_rh) AS lucro_total
+FROM receita r
+JOIN custos c ON r.id_usina = c.id_usina AND r.mes = c.mes
+GROUP BY r.mes
+ORDER BY r.mes;
+
