@@ -1,0 +1,90 @@
+1 Gerar dados simulados (CSV)
+import pandas as pd
+import numpy as np
+
+# Semente para reprodutibilidade
+np.random.seed(42)
+
+# Criar dados simulados
+n_maquinas = 100
+meses = ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+
+data = {
+    'Maquina': np.random.choice([f'M{i+1}' for i in range(10)], size=n_maquinas),
+    'Temp_motor': np.random.normal(80, 10, n_maquinas),        # °C
+    'Pressao_hidraulica': np.random.normal(150, 20, n_maquinas),
+    'Horas_uso': np.random.randint(100, 1000, n_maquinas),
+    'Falha': np.random.choice([0,1], size=n_maquinas, p=[0.8,0.2])
+}
+
+df = pd.DataFrame(data)
+
+# Salvar CSV
+df.to_csv('data/sensor_data.csv', index=False)
+print("Dados simulados salvos em 'data/sensor_data.csv'")
+
+2 Script Python — Análise e Modelo de Classificação
+# machine_failure_model.py
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc
+
+# Carregar dados
+df = pd.read_csv('data/sensor_data.csv')
+
+# Visualização rápida
+print(df.head())
+print(df['Falha'].value_counts())
+
+# Gráfico de falhas por máquina
+sns.countplot(x='Maquina', hue='Falha', data=df)
+plt.title('Falhas por Máquina')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('images/falhas_por_maquina.png')
+plt.show()
+
+# Dividir em features e target
+X = df[['Temp_motor','Pressao_hidraulica','Horas_uso']]
+y = df['Falha']
+
+# Divisão treino/teste
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Modelo Random Forest
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Previsões
+y_pred = model.predict(X_test)
+
+# Avaliação
+print("Acurácia:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Matriz de confusão
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.title('Matriz de Confusão')
+plt.xlabel('Previsto')
+plt.ylabel('Real')
+plt.savefig('images/matriz_confusao.png')
+plt.show()
+
+# Curva ROC
+y_prob = model.predict_proba(X_test)[:,1]
+fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+roc_auc = auc(fpr, tpr)
+
+plt.figure()
+plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+plt.plot([0, 1], [0, 1], 'k--')
+plt.title('Curva ROC')
+plt.xlabel('Falso Positivo')
+plt.ylabel('Verdadeiro Positivo')
+plt.legend(loc="lower right")
+plt.savefig('images/roc_curve.png')
+plt.show()
