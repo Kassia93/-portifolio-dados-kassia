@@ -1,14 +1,9 @@
 Análise de Produção e Rendimento Agroindustrial
-
-Objetivo
 Criar um dashboard para acompanhar a moagem, produção de etanol e açúcar, e rendimento por tonelada processada nas usinas.
-
-Ferramentas
 - Power BI
 - Excel
 - DAX
 
-Descrição
 Este projeto simula os dados operacionais de três usinas de uma empresa do setor de biocombustíveis. O objetivo é analisar os indicadores de produtividade ao longo dos meses da safra.
 
 Resultados
@@ -17,7 +12,41 @@ Resultados
 - Identificação de gargalos de produção em 2 das 3 usinas.
 - Visualização intuitiva para diretoria técnica.
 
-## 📷 Imagens
+Imagens
 ![Dashboard](images/dashboard-mockup.png)
 
-## 📁 Estrutura
+Estrutura
+data/producao_usinas.xlsx
+
+Sugestão de planilha com 2 abas:
+
+Aba “Producao”
+
+Mês	Usina	Moagem (ton)	Açúcar (kg)	Etanol (litros)
+Janeiro	Alfa	100000	8000	15000
+Janeiro	Beta	95000	7500	14000
+Janeiro	Gama	110000	8800	16000
+Fevereiro	Alfa	102000	8200	15200
+Fevereiro	Beta	97000	7700	14200
+Fevereiro	Gama	112000	9000	16500
+
+Aba “Metas”
+
+Mês	Usina	Moagem_Meta (ton)	Açúcar_Meta (kg)	Etanol_Meta (litros)
+Janeiro	Alfa	98000	7900	14800
+Janeiro	Beta	96000	7600	14100
+Janeiro	Gama	108000	8700	15900
+Fevereiro	Alfa	101000	8100	15000
+Fevereiro	Beta	97000	7700	14200
+Fevereiro	Gama	110000	8950	16400
+dashboards/dashboard_producao.pbix
+
+Arquivo Power BI com:
+
+Conexão à planilha Excel.
+
+Medidas em DAX:
+
+Rendimento_Acucar = SUM(Producao[Açúcar]) / SUM(Producao[Moagem]) * 1000
+
+Rendimento_Etanol = SUM(Producao[Etanol]) / SUM(Producao[Moagem]) * 1000
