@@ -1,0 +1,27 @@
+-- Criar tabela de usinas
+CREATE TABLE usinas (
+    id_usina INT PRIMARY KEY,
+    nome VARCHAR(50)
+);
+
+-- Criar tabela de custos
+CREATE TABLE custos (
+    id_custo INT PRIMARY KEY,
+    id_usina INT,
+    mes VARCHAR(20),
+    custo_insumos DECIMAL(10,2),
+    custo_combustivel DECIMAL(10,2),
+    custo_manutencao DECIMAL(10,2),
+    custo_rh DECIMAL(10,2),
+    FOREIGN KEY (id_usina) REFERENCES usinas(id_usina)
+);
+
+-- Criar tabela de receita
+CREATE TABLE receita (
+    id_receita INT PRIMARY KEY,
+    id_usina INT,
+    mes VARCHAR(20),
+    valor DECIMAL(10,2),
+    toneladas_produzidas DECIMAL(10,2),
+    FOREIGN KEY (id_usina) REFERENCES usinas(id_usina)
+);
