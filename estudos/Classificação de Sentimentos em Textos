@@ -1,0 +1,54 @@
+Dados simulados (data/reviews.csv)
+Review,Sentimento
+"O produto é excelente e chegou rápido!",positivo
+"Não gostei do atendimento, foi muito ruim.",negativo
+"Amei a experiência, super recomendo!",positivo
+"O produto chegou quebrado, muito insatisfeito.",negativo
+"Serviço ótimo, atendimento rápido e cordial.",positivo
+"Produto atrasado e mal embalado.",negativo
+
+
+
+Script Python (notebooks/sentiment_model.py)
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Carregar dados
+df = pd.read_csv('../data/reviews.csv')
+
+# Visualização inicial
+print(df.head())
+print(df['Sentimento'].value_counts())
+
+# Pré-processamento de texto
+vectorizer = CountVectorizer(stop_words='english')
+X = vectorizer.fit_transform(df['Review'])
+y = df['Sentimento']
+
+# Divisão treino/teste
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Treinar modelo
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Previsões
+y_pred = model.predict(X_test)
+
+# Avaliação
+print("Acurácia:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Matriz de confusão
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['negativo','positivo'], yticklabels=['negativo','positivo'])
+plt.title('Matriz de Confusão')
+plt.xlabel('Previsto')
+plt.ylabel('Real')
+plt.savefig('../images/matriz_confusao.png')
+plt.show()
