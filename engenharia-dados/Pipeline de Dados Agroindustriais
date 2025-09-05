@@ -1,0 +1,69 @@
+data-engineering-agro
+
+Dados simulados (data/producao_raw.csv)
+Usina,Mes,Moagem_ton,Açúcar_kg,Etanol_litros
+Alfa,Janeiro,100000,8000,15000
+Beta,Janeiro,95000,7500,14000
+Gama,Janeiro,110000,8800,16000
+Alfa,Fevereiro,102000,8200,15200
+Beta,Fevereiro,97000,7700,14200
+Gama,Fevereiro,112000,9000,16500
+
+
+data/custos_raw.csv
+
+Usina,Mes,Custo_insumos,Custo_combustivel,Custo_manutencao,Custo_rh
+Alfa,Janeiro,200000,100000,50000,100000
+Beta,Janeiro,180000,120000,40000,90000
+Gama,Janeiro,220000,110000,60000,95000
+Alfa,Fevereiro,210000,95000,55000,102000
+Beta,Fevereiro,185000,115000,45000,92000
+Gama,Fevereiro,225000,105000,62000,97000
+
+Script ETL Python (pipelines/etl_producao.py)
+import pandas as pd
+from sqlalchemy import create_engine
+
+# Ler dados brutos
+df = pd.read_csv('../data/producao_raw.csv')
+
+# Transformações básicas
+df['Rendimento_kg_por_ton'] = df['Açúcar_kg'] / df['Moagem_ton'] * 1000
+
+# Conexão com banco de dados (PostgreSQL como exemplo)
+engine = create_engine('postgresql://usuario:senha@localhost:5432/agro_db')
+
+# Inserir tabela
+df.to_sql('producao', engine, if_exists='replace', index=False)
+print("ETL de produção concluído e dados carregados no banco!")
+
+
+pipelines/etl_custos.py
+
+import pandas as pd
+from sqlalchemy import create_engine
+
+df = pd.read_csv('../data/custos_raw.csv')
+
+# Transformações básicas
+df['Custo_total'] = df['Custo_insumos'] + df['Custo_combustivel'] + df['Custo_manutencao'] + df['Custo_rh']
+
+engine = create_engine('postgresql://usuario:senha@localhost:5432/agro_db')
+df.to_sql('custos', engine, if_exists='replace', index=False)
+print("ETL de custos concluído e dados carregados no banco!")
+
+Exemplo de análise / queries SQL (analysis/queries.sql)
+-- Rentabilidade por usina
+SELECT 
+    p.Usina,
+    p.Mes,
+    (p.Açúcar_kg*2 + p.Etanol_litros*1.5) - c.Custo_total AS Rentabilidade
+FROM producao p
+JOIN custos c ON p.Usina = c.Usina AND p.Mes = c.Mes;
+
+-- Rendimento médio por usina
+SELECT 
+    Usina,
+    AVG(Açúcar_kg / Moagem_ton * 1000) AS Rendimento_medio_kg_por_ton
+FROM producao
+GROUP BY Usina;
